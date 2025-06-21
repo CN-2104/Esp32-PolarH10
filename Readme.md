@@ -209,7 +209,7 @@ O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mes
 1. **Carregue o código** no ESP32 e abre o Monitor Serial (115200 baud)
 2. **Coloque a cinta Polar H10** no peito (umidificada)
 3. **Conecte no Wi-Fi** `Monitor-Cardiaco` com a senha `12345678`
-4. **Abre o navegador** e vai em `http://192.168.4.1/` 
+4. **Abre o navegador** e vá em `http://192.168.4.1/` 
 5. **Funcionando** e veja os batimentos mudando na tela!
 
 ---
@@ -252,3 +252,139 @@ O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mes
 2. **Parsing de dados**: Interpretar corretamente os dados do Polar H10
 3. **Interface web**: Criar uma interface simples mas eficaz
 4. **Placa defeituosa ESP32**: 1 dia de debugging para o problema ser de hardware
+
+---
+
+## Processo de Conexão BLE - Visão Geral
+
+### Fluxo Completo: ESP32 ↔ Polar H10
+
+O estabelecimento da conexão entre o ESP32 e o Polar H10 segue um protocolo BLE com múltiplas etapas:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   1. SCANNING   │ => │  2. CONNECTION  │ => │ 3. SERVICE DISC │
+│                 │    │                 │    │                 │
+│ ESP32 procura   │    │ Estabelece      │    │ Encontra o      │
+│ por dispositivos│    │ canal BLE       │    │ serviço 180D    │
+│ BLE próximos    │    │ com Polar H10   │    │ (Heart Rate)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                        │
+         ┌──────────────────────────────────────────────┘
+         │
+         v
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│4. CHARACTERISTIC│ => │ 5. NOTIFICATION │ => │  6. DATA FLOW   │
+│                 │    │                 │    │                 │
+│ Encontra a      │    │ Habilita as     │    │ Polar H10 envia │
+│ característica  │    │ notificações    │    │ dados de HR     │
+│ 2A37 (HR Data)  │    │ automáticas     │    │ automaticamente │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Detalhamento Técnico das Etapas
+
+#### **Fase de Scanning**
+```cpp
+// ESP32 escuta por 30 segundos procurando dispositivos BLE
+pBLEScan->start(30000, false, true);
+```
+- **Duração:** 30 segundos por ciclo
+- **Método de descoberta:** MAC address específico (`a0:9e:1a:e4:c5:6b`)
+- **Fallbacks:** Nome "Polar", serviço HR (180D), manufacturer ID (107)
+
+#### **Estabelecimento da Conexão**
+```cpp
+// Múltiplas tentativas com parâmetros progressivos, para tentar acertar a janela de advertasing do sensor
+pClient->connect(polarH10Device, true, false, false);
+```
+- **Tentativas:** Up to 6 attempts with exponential backoff
+- **Parâmetros de conexão:** Ajustados para otimizar a conexão com Polar H10
+- **MTU Negotiation:** Negocia 232 bytes (vs 23 bytes padrão) para transferência eficiente de dados estendidos
+  - **MTU padrão (23 bytes):** Suficiente para HR básico + poucos RR intervals
+  - **MTU otimizado (232 bytes):** Permite HR + múltiplos RR intervals + dados extras em um único pacote
+  - **Benefício:** Reduz latência e melhora eficiência energética
+
+#### **Descoberta de Serviços**
+```cpp
+// Busca pelo serviço padrão de Heart Rate
+pService = pClient->getService(NimBLEUUID("180D"));
+```
+- **Serviço alvo:** `0x180D` (Heart Rate Service - padrão BLE)
+- **Handle descoberto:** Normalmente handle 14
+
+#### **Descoberta de Características**
+```cpp
+// Encontra a característica de medição de HR
+pRemoteCharacteristic = pService->getCharacteristic(NimBLEUUID("2A37"));
+```
+- **Característica alvo:** `0x2A37` (Heart Rate Measurement)
+
+#### **Habilitação de Notificações**
+```cpp
+// Ativa notificações automáticas de dados
+pRemoteCharacteristic->subscribe(true, notifyCallback);
+```
+- **Descriptor usado:** `0x2902` (Client Characteristic Configuration)
+- **Valor escrito:** `0x0001` (enable notifications)
+- **Callback registrado:** `notifyCallback()` para processar dados
+
+#### **Fluxo de Dados Contínuo**
+```cpp
+// Callback executado automaticamente a cada batimento
+void notifyCallback(uint8_t *pData, size_t length, bool isNotify) {
+    // Parse do formato BLE Heart Rate Service
+    uint8_t flags = pData[0];
+    int hr = (flags & 0x01) ? (pData[1] | (pData[2] << 8)) : pData[1];
+}
+```
+
+### Tratamento de Erros e Reconexão
+
+#### Sistema de Retry Inteligente
+- **Tentativas de conexão:** 6 attempts com delays progressivos (400ms, 600ms, 800ms...)
+- **Reset de stack BLE:** A cada 4 tentativas para limpar estado
+- **Timeout global:** 2 minutos antes de reiniciar o scanning
+- **Monitoramento de saúde:** Reconecta se não receber dados por 45 segundos
+
+#### Gerenciamento de Estado
+```cpp
+// Estados principais monitorados
+bool scanActive = true;           // Scanning em andamento
+bool deviceConnected = false;     // Conexão BLE estabelecida  
+String connectionStatus;          // Status para display web
+```
+
+### Otimizações Implementadas
+
+#### Parâmetros BLE Otimizados
+- **MTU:** 232 bytes (10x maior que padrão)
+- **Data Length:** 185 bytes (Data Length Extension)
+- **Connection Interval:** 50-100ms (balanceado para HR)
+
+#### Estratégias de Timing
+- **Delay pré-conexão:** Aumenta progressivamente (400ms + retries*200ms)
+- **Spacing entre tentativas:** 8 segundos para respeitar ciclo de advertising
+- **Stabilization delay:** 500ms após conexão bem-sucedida
+
+### Indicadores de Status na Interface Web
+
+| Status | Cor | Significado |
+|--------|-----|-------------|
+| **Scanning...** | 🟡 Amarelo | Procurando por Polar H10 |
+| **Connecting...** | 🟠 Laranja | Tentando estabelecer conexão |
+| **Connected** | 🟢 Verde | Recebendo dados de HR |
+| **Connection Failed** | 🔴 Vermelho | Erro na conexão, tentando novamente |
+
+---
+
+### Troubleshooting de Conexão
+
+#### Problemas Comuns:
+1. **"No HR data received in 45 seconds"** → Verificar contato da cinta no peito
+2. **"Connection failed; status=13"** → Timeout - normal, sistema tentará novamente
+
+#### Soluções:
+- Umidificar a cinta peitoral para melhor contato
+- Desconectar Polar H10 de outros dispositivos (celular/apps) Ou ativar a conexão simultânea de 2 dispositivos (Aplicativos da Polar)
+- Aguardar - o sistema tem retry automático inteligente Ou Resetar o ESP32 pelo botão físico

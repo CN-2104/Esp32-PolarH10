@@ -210,13 +210,15 @@ class MyClientCallback : public NimBLEClientCallbacks{
         Serial.print("Initial MTU: ");
         Serial.println(pclient->getMTU());
 
-        // Request a larger MTU - correct method for NimBLE 2.3.1
+        // Request a larger MTU
         // Use setMTU instead of setPreferedMTU
         NimBLEDevice::setMTU(232);
 
         // Then exchange MTU with no parameters
         if (pclient->exchangeMTU()){
-            Serial.print("MTU exchange requested, Negotiated MTU: ");
+            Serial.println("MTU exchange requested...");
+            delay(100); // Give time for negotiation
+            Serial.print("Final negotiated MTU: ");
             Serial.println(pclient->getMTU());
         }else{
             Serial.println("MTU exchange failed");
@@ -435,12 +437,10 @@ bool connectToDevice(){
     }
 
     // If all retries failed
-    if (!connected)
-    {
+    if (!connected){
         Serial.println("All connection attempts failed");
         connectionStatus = "Connection Failed";
-        if (pClient != nullptr)
-        {
+        if (pClient != nullptr){
             NimBLEDevice::deleteClient(pClient);
             pClient = nullptr;
         }
@@ -464,8 +464,7 @@ bool connectToDevice(){
         // Get the heart rate measurement characteristic
         pRemoteCharacteristic = pService->getCharacteristic(NimBLEUUID("2A37"));
 
-        if (pRemoteCharacteristic != nullptr)
-        {
+        if (pRemoteCharacteristic != nullptr){
             Serial.println("Heart Rate Characteristic found!");
 
             // Subscribe to notifications to receive HR updates
@@ -474,9 +473,7 @@ bool connectToDevice(){
                 if (pRemoteCharacteristic->subscribe(true, notifyCallback)){
                     Serial.println("Successfully subscribed to Heart Rate notifications!");
                     return true;
-                }
-                else
-                {
+                }else{
                     Serial.println("Failed to subscribe to notifications");
                 }
             }
