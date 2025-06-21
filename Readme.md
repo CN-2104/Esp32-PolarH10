@@ -330,7 +330,7 @@ Baud Rate: 115200
 ## Melhorias Futuras
 
 ### Melhorias Técnicas
-- **WebSocket** - Comunicação real-time sem polling HTTP
+- **WebSocket** - Comunicação real-time sem reset HTTP
 - **Persistência de dados** - Salvar histórico com timestamp
 - **Integração na nuvem** - Upload para banco de dados remoto
 - **Interface no LittleFS** - HTML/CSS/JS servidos do ESP32
