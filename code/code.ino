@@ -533,74 +533,14 @@ void handleRoot(){
                   "padding:2px;overflow:hidden;}" 
                   "canvas{width:100% !important;height:auto !important;display:block;margin:0}" 
                   "</style>"
-                  "<script>"
-                  // Embedded Chart.js (simplified version for basic line chart)
-                  "class SimpleChart{"
-                  "constructor(ctx,config){"
-                  "this.ctx=ctx;this.data=config.data;this.options=config.options||{};"
-                  "this.canvas=ctx.canvas;this.draw();}"
-                  "draw(){"
-                  "const canvas=this.canvas;const ctx=this.ctx;"
-                  "const width=canvas.width=canvas.offsetWidth;"
-                  "const height=canvas.height=Math.min(250, Math.max(width*0.5, 200));" 
-                  "ctx.clearRect(0,0,width,height);"
-                  "const chartPadding=30;const chartWidth=width-2*chartPadding;" 
-                  "const chartHeight=height-2*chartPadding;"
-                  "const data=this.data.datasets[0].data;"
-                  "const labels=this.data.labels;"
-                  // Adaptive scale calculation
-                  "let actualMin=Math.min(...data.filter(v=>v>0));" // Filter out zeros
-                  "let actualMax=Math.max(...data);"
-                  "if(actualMin===Infinity) actualMin=40;" // Default if no valid data
-                  "if(actualMax===0) actualMax=100;" // Default if no valid data
-                  // Add padding and ensure minimum range of 40
-                  "const scalePadding=20;" 
-                  "let min=Math.max(40,Math.floor((actualMin-scalePadding)/10)*10);" // Round down to nearest 10
-                  "let max=Math.ceil((actualMax+scalePadding)/10)*10;" // Round up to nearest 10
-                  "if(max-min<40) max=min+40;" // Ensure minimum range
-                  "const range=max-min||1;"
-                  // Draw grid
-                  "ctx.strokeStyle='#ddd';ctx.lineWidth=1;"
-                  "for(let i=0;i<=10;i++){"
-                  "const y=chartPadding+i*(chartHeight/10);"
-                  "ctx.beginPath();ctx.moveTo(chartPadding,y);ctx.lineTo(width-chartPadding,y);ctx.stroke();}"
-                  // Draw filled area under the line
-                  "ctx.fillStyle='rgba(255,0,0,0.2)';"
-                  "ctx.beginPath();"
-                  "ctx.moveTo(chartPadding,chartPadding+chartHeight);"
-                  "for(let i=0;i<data.length;i++){"
-                  "const x=chartPadding+i*(chartWidth/(data.length-1));"
-                  "const y=chartPadding+chartHeight-((data[i]-min)/range)*chartHeight;"
-                  "ctx.lineTo(x,y);}"
-                  "ctx.lineTo(chartPadding+(data.length-1)*(chartWidth/(data.length-1)),chartPadding+chartHeight);"
-                  "ctx.closePath();ctx.fill();"
-                  // Draw line
-                  "ctx.strokeStyle='red';ctx.lineWidth=3;ctx.beginPath();"
-                  "for(let i=0;i<data.length;i++){"
-                  "const x=chartPadding+i*(chartWidth/(data.length-1));"
-                  "const y=chartPadding+chartHeight-((data[i]-min)/range)*chartHeight;"
-                  "if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}"
-                  "ctx.stroke();"
-                  // Draw points
-                  "ctx.fillStyle='red';"
-                  "for(let i=0;i<data.length;i++){"
-                  "const x=chartPadding+i*(chartWidth/(data.length-1));"
-                  "const y=chartPadding+chartHeight-((data[i]-min)/range)*chartHeight;"
-                  "ctx.beginPath();ctx.arc(x,y,4,0,2*Math.PI);ctx.fill();}"
-                  // Draw labels
-                  "ctx.fillStyle='black';ctx.font='12px Arial';ctx.textAlign='center';"
-                  "for(let i=0;i<labels.length;i+=3){"
-                  "const x=chartPadding+i*(chartWidth/(labels.length-1));"
-                  "ctx.fillText(labels[i],x,height-10);}"
-                  // Draw Y-axis labels
-                  "ctx.textAlign='right';"
-                  "for(let i=0;i<=5;i++){"
-                  "const y=chartPadding+i*(chartHeight/5);"
-                  "const value=Math.round(max-i*(range/5));"
-                  "ctx.fillText(value,chartPadding-10,y+4);}"
-                  "}}"
-                  "window.Chart=SimpleChart;"
-                  "</script>"
+                  "<script>";
+
+    // Space to paste Chart.js library code
+    html += R"=====(
+// PASTE CHART.JS LIBRARY HERE
+)=====";
+
+    html += "</script>"
                   "</head><body>"
                   "<h2>ESP32 HR Monitor</h2>";
 
@@ -621,7 +561,7 @@ void handleRoot(){
     // Add chart container
     html += "<div class='chart-container'><canvas id='bpmChart'></canvas></div>";
 
-    // Add JavaScript to create chart with actual data
+    // Add JavaScript to create chart with actual data (using standard Chart.js syntax)
     html += "<script>"
             "const ctx=document.getElementById('bpmChart').getContext('2d');"
             "const bpmData=[";
@@ -647,15 +587,15 @@ void handleRoot(){
             "fill:true,"
             "tension:0.4,"
             "pointRadius:5,"
-            "pointHoverRadius:15"
+            "pointHoverRadius:8"
             "}]},"
             "options:{"
             "responsive:true,"
+            "maintainAspectRatio:false,"
             "plugins:{legend:{display:true,position:'top'}},"
             "scales:{"
             "x:{title:{display:true,text:'Time'}},"
-            // Calculate adaptive range similar to above, based on actual data
-            "y:{title:{display:true,text:'BPM'}}" // Remove fixed min/max
+            "y:{title:{display:true,text:'BPM'},suggestedMin:40,suggestedMax:180}"
             "}}"
             "});"
             "</script></body></html>";
