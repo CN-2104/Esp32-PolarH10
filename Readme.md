@@ -1,13 +1,14 @@
 # Monitor Cardíaco ESP32-C3 + Polar H10 com Dashboard Web
 
 > **Trabalho 2 - Projeto de Software e Hardware com Arduino/ESP32**  
-> **Disciplina:** SSC0180 - Eletrônica para Computação	
-> **Integrantes do Grupo:** 
+> **Disciplina:** SSC0180 - Eletrônica para Computação  
+
+**Integrantes do Grupo:** 
 - Christyan Paniago Nantes – Nº USP: 15635906
 - Davi Gabriel Domingues – Nº USP: 15447497
 - Giovanna Nascimento Noventa – Nº USP: 15637210
 
-O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** via Bluetooth BLE e mostrar os batimentos cardíacos em tempo real numa página web. Tudo funciona direto no microcontrolador - ele faz a conexão BLE, cria uma rede Wi-Fi e serve uma interface web simples mas eficaz. A interface web contém o batimento atual, um gráfico recente e um "Zen Mode".
+O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** via Bluetooth BLE e mostrar os batimentos cardíacos em tempo real numa página web. Tudo funciona direto no microcontrolador - ele faz a conexão BLE, cria uma rede Wi-Fi e serve uma interface web simples mas eficaz. A interface web contém o batimento atual e um gráfico recente.
 
 ## Demonstração em Vídeo
 
@@ -17,7 +18,6 @@ O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** v
 - O projeto montado e funcionando
 - Explicação da arquitetura usada
 - Demonstração da interface web em tempo real
-- Teste com modo ZEN
 
 ---
 
@@ -78,7 +78,7 @@ O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** v
 
 ### Estrutura do Código
 
-O projeto está organizado da seguinte forma:
+As pastas estão organizadas da seguinte forma:
 
 ```
 Esp32-PolarH10
@@ -99,10 +99,19 @@ Esp32-PolarH10
     └───projeto_montado.jpg
  
 ```
+### Código Principal (`code/code.ino`)
+
+O software foi desenvolvido em C++ usando a Arduino IDE e está dividido em módulos principais:
+
+1. **Módulo BLE**: Gerencia scan, conexão e recepção de dados (Search_Function,Connect/Disconnect,HR_Notifications,Start_Scan e Connect)
+2. **Módulo WiFi**: Configura access point e servidor web (setup)
+3. **Módulo Web**: Serve interface HTML com dados em tempo real (WebSite)
+4. **Módulo Principal**: Coordena todos os módulos (loop)
+
 
 ### Uso do LittleFS para arquivos estáticos
 
-Agora, a biblioteca Chart.js é servida diretamente do ESP32 usando o sistema de arquivos LittleFS. Isso permite que a interface web funcione **100% offline**.
+A biblioteca Chart.js é servida diretamente do ESP32 usando o sistema de arquivos LittleFS. Isso permite que a interface web funcione **100% offline**.
 
 #### Como enviar arquivos para o SPIFFS
 
@@ -111,14 +120,7 @@ Agora, a biblioteca Chart.js é servida diretamente do ESP32 usando o sistema de
    - Baixe e instale o plugin [Arduino ESP32 LittleFS/ESP32FS Uploader](https://github.com/earlephilhower/arduino-littlefs-upload).
    - Siga as instruções fornecidas no repositório acima
    
-### Código Principal (`code/code.ino`)
 
-O software foi desenvolvido em C++ usando a Arduino IDE e está dividido em módulos principais:
-
-1. **Módulo BLE**: Gerencia scan, conexão e recepção de dados
-2. **Módulo WiFi**: Configura access point e servidor web  
-3. **Módulo Web**: Serve interface HTML com dados em tempo real
-4. **Módulo Principal**: Coordena todos os módulos
 
 **Principais bibliotecas utilizadas:**
 ### Bibliotecas Necessárias
