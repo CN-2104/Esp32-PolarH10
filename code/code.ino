@@ -192,14 +192,6 @@ public:
         Serial.print(scanAttempts);
         Serial.println(" - continuing scan");
 
-        // Periodically adjust scan parameters for better detection
-        // Some parameters work better with different devices or environments
-        // if (scanAttempts % 5 == 0) {
-        //     Serial.println("Changing scan parameters for better detection...");
-        //     pBLEScan->setInterval(scanAttempts % 10 == 0 ? 160 : 60);  // Switches between fast/slow
-        //     pBLEScan->setWindow(scanAttempts % 10 == 0 ? 150 : 55);    // Adjusts duty cycle
-        // }
-
         // Scan will automatically restart via third parameter (true) in startScan()
     }
 };
@@ -424,13 +416,13 @@ bool connectToDevice(){
         }
 
         // Pre-connection delay - increases with retry count
-        Serial.println("Waiting for Polar H10 to be ready to accept connections...");
+        Serial.println("Pre Connection Delay");
         delay(400 + (retries * 200));
 
         // Attempt connection
-        Serial.println("Connecting to device with address type RANDOM...");
-        if (pClient->connect(polarH10Device, BLE_ADDR_RANDOM))
-        {
+        Serial.println("Attempting to connect to device");
+        // Attempt connection with explicit parameters
+        if (pClient->connect(polarH10Device, true, false, false)){
             connected = true;
             break;
         }
@@ -589,15 +581,12 @@ void loop(){
                 Serial.println(connectionAttempts);
                 connectToDevice();
             }
-        }else{
-            Serial.println("Waiting before next connection attempt...");
         }
 
         // Global timeout - if device found but can't connect after long time
         if (connectionStartTime == 0){
             connectionStartTime = millis();
-        }
-        else if (millis() - connectionStartTime > 120000){ // 2 minutes timeout
+        }else if (millis() - connectionStartTime > 120000){ // 2 minutes timeout
             Serial.println("Connection timeout reached, restarting scan...");
             connectionStartTime = 0;
             initialDelayComplete = false; // Reset for next time
