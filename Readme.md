@@ -91,9 +91,6 @@ Esp32-PolarH10
 │   └───data (arquivos estáticos para LittleFS (`chart.min.js`)
 │           chart.min.js
 │
-├───codelegacy
-│       codelegacy.ino
-│
 └───images (As imagens usadas no README)
     ├───IMAGENS_NECESSARIAS.txt 
     ├───interface_web.png
