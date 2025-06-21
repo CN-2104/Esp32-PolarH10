@@ -311,7 +311,7 @@ O estabelecimento da conexão entre o ESP32 e o Polar H10 segue um protocolo BLE
                   │ característica  │    │ notificações    │    │ dados de HR     │
                   │ 2A37 (HR Data)  │    │ automáticas     │    │ automaticamente │
                   └─────────────────┘    └─────────────────┘    └─────────────────┘
-                  ```
+```
 
 ### Detalhamento Técnico das Etapas
 
