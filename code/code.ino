@@ -402,14 +402,12 @@ bool connectToDevice(){
             pClient->setClientCallbacks(new MyClientCallback());
 
             // Adjust connection parameters based on retry count
-            if (retries == 0)
-            {
+            if (retries == 0){
                 // First attempt - default parameters
                 pClient->setConnectionParams(24, 40, 0, 400);
                 pClient->setConnectTimeout(15);
             }
-            else
-            {
+            else{
                 // Later attempts - more relaxed parameters
                 pClient->setConnectionParams(40, 80, 0, 1000); // More relaxed parameters optimized for Polar
 
