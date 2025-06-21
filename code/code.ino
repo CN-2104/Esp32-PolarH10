@@ -228,9 +228,15 @@ class MyClientCallback : public NimBLEClientCallbacks{
         pclient->setDataLen(185);
         Serial.println("Data length set to 185");
 
-        // Update connection parameters immediately for better stability
+        // Update connection parameters immediately for better stability after connection is established
         pclient->updateConnParams(120, 120, 0, 60);
-        delay(200); // Short delay before proceeding
+        // Post-connection parameters breakdown:
+        // 120: minInterval (120 × 1.25ms = 150ms) - Slower interval for stable data transfer
+        // 120: maxInterval (120 × 1.25ms = 150ms) - Fixed interval (min=max) for consistent timing
+        // 0: latency - No connection event skipping for reliable heart rate data
+        // 60: supervisionTimeout (60 × 10ms = 600ms) - Shorter timeout since connection is established
+
+        delay(200); // Short delay to allow parameter update to take effect before service discovery
     }
 
     // Called when connection is lost or disconnected
@@ -403,21 +409,36 @@ bool connectToDevice(){
 
             // Adjust connection parameters based on retry count
             if (retries == 0){
-                // First attempt - default parameters
-                pClient->setConnectionParams(24, 40, 0, 400);
-                pClient->setConnectTimeout(15);
+                // First attempt - more conservative parameters
+                pClient->setConnectionParams(40, 80, 0, 600);  
+                // Parameters breakdown:
+                // 40: minInterval (40 × 1.25ms = 50ms) - Minimum time between connection events
+                // 80: maxInterval (80 × 1.25ms = 100ms) - Maximum time between connection events  
+                // 0: latency - Number of connection events the slave can skip (0 = don't skip any)
+                // 600: supervisionTimeout (600 × 10ms = 6 seconds) - Max time before considering connection lost
+                
+                pClient->setConnectTimeout(30);  // 30 seconds timeout for initial connection attempt
             }
             else{
-                // Later attempts - more relaxed parameters
-                pClient->setConnectionParams(40, 80, 0, 1000); // More relaxed parameters optimized for Polar
-
-                pClient->setConnectTimeout(30);
+                // Later attempts - even more relaxed parameters for difficult connections
+                pClient->setConnectionParams(60, 120, 0, 1000); 
+                // Parameters breakdown:
+                // 60: minInterval (60 × 1.25ms = 75ms) - Slower minimum interval for stability
+                // 120: maxInterval (120 × 1.25ms = 150ms) - Slower maximum interval for reliability
+                // 0: latency - Still no skipping of connection events
+                // 1000: supervisionTimeout (1000 × 10ms = 10 seconds) - Longer timeout for unstable connections
+                
+                pClient->setConnectTimeout(45);  // 45 seconds timeout - more patient for retry attempts
             }
         }
 
-        // Pre-connection delay - increases with retry count
+        // Pre-connection delay - increases with retry count to respect Polar H10's advertising cycle
         Serial.println("Pre Connection Delay");
         delay(400 + (retries * 200));
+        // Base delay: 400ms - Initial wait time before first connection attempt
+        // Progressive increase: retries × 200ms - Longer delays for subsequent attempts
+        // Purpose: Allows Polar H10 to complete advertising cycles and be ready for connection
+        // Example: Attempt 1=400ms, Attempt 2=600ms, Attempt 3=800ms, etc.
 
         // Attempt connection
         Serial.println("Attempting to connect to device");
@@ -427,10 +448,12 @@ bool connectToDevice(){
             break;
         }
 
-        // Connection failed - exponential backoff
+        // Connection failed - exponential backoff to prevent overwhelming the device
         Serial.println("Connection attempt failed, retrying...");
-        delay(delayMs);
-        delayMs *= 2; // Double delay each time
+        delay(delayMs);         // Wait before next retry (starts at 100ms)
+        delayMs *= 2;           // Double the delay each time (100ms → 200ms → 400ms → 800ms...)
+        // Purpose: Gives increasing time between retries to avoid rapid-fire connection attempts
+        // that can interfere with Polar H10's BLE stack or cause connection blocking
         retries++;
     }
 
@@ -562,6 +585,9 @@ void loop(){
 
         // Space out connection attempts - trying too frequently causes errors
         if (millis() - lastAttemptTime > 8000){
+            // 8000ms (8 seconds) spacing between connection attempts in main loop
+            // Purpose: Respects Polar H10's advertising interval and prevents BLE stack overload
+            // Shorter intervals can cause connection failures due to timing conflicts
             lastAttemptTime = millis();
             connectionAttempts++;
 
