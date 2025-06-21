@@ -3,6 +3,20 @@
 > **Trabalho 2 - Projeto de Software e Hardware com Arduino/ESP32**  
 > **Disciplina:** SSC0180 - Eletrônica para Computação  
 
+## Sumário
+- [Visão Geral](#visão-geral)
+- [Demonstração](#demonstração)
+- [Pré-requisitos](#pré-requisitos)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Configuração e Build](#configuração-e-build)
+- [Como Usar](#como-usar)
+- [Detalhes Técnicos](#detalhes-técnicos)
+- [Solução de Problemas](#solução-de-problemas)
+- [Trabalhos Futuros](#trabalhos-futuros)
+- [Referências](#referências)
+
+## Visão Geral
+
 **Integrantes do Grupo:** 
 - Christyan Paniago Nantes – Nº USP: 15635906
 - Davi Gabriel Domingues – Nº USP: 15447497
@@ -10,7 +24,7 @@
 
 O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** via Bluetooth BLE e mostrar os batimentos cardíacos em tempo real numa página web. Tudo funciona direto no microcontrolador - ele faz a conexão BLE, cria uma rede Wi-Fi e serve uma interface web simples mas eficaz. A interface web contém o batimento atual e um gráfico recente.
 
-## Demonstração em Vídeo
+## Demonstração
 
 **[Assista ao projeto funcionando aqui](https://www.youtube.com/XXXXXXXXX)**
 
@@ -52,7 +66,7 @@ O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** v
 
 ---
 
-## 📸 Imagens do Projeto
+## Imagens do Projeto
 
 ### Montagem Final
 ![Projeto Montado](images/projeto_montado.jpg)
@@ -74,117 +88,140 @@ O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** v
 
 ---
 
-## 💻 Software Desenvolvido
+## Pré-requisitos
 
-### Estrutura do Código
+### Hardware Necessário
+- **ESP32-C3 Dev Module** (ou variante compatível)
+- **Polar H10** - Cinta peitoral com sensor BLE
+- **Cabo USB Tipo-C** - Para programação e alimentação
+- **Dispositivo para acesso** - Celular ou computador para acessar a interface web
 
-As pastas estão organizadas da seguinte forma:
+### Software Necessário
+- **Arduino IDE** (v2.0.0+ com suporte ESP32)
+- **ESP32 Board Core v3.2.0+** da Espressif
+- **Plugin LittleFS Upload** - [arduino-littlefs-upload](https://github.com/earlephilhower/arduino-littlefs-upload)
 
-```
-Esp32-PolarH10
-├───Readme.md
-├───batimento_mockup.html
-│
-├───code 
-│   │   code.ino (código principal)
-│   │
-│   └───data (arquivos estáticos para LittleFS (`chart.min.js`)
-│           chart.min.js
-│
-└───images (As imagens usadas no README)
-    ├───IMAGENS_NECESSARIAS.txt 
-    ├───interface_web.png
-    ├───monitor_serial.png
-    ├───polar_h10_teste.jpg
-    └───projeto_montado.jpg
- 
-```
-### Código Principal (`code/code.ino`)
+### Bibliotecas (Dependências)
 
-O software foi desenvolvido em C++ usando a Arduino IDE e está dividido em módulos principais:
+> **IMPORTANTE:** Apenas a biblioteca NimBLE-Arduino precisa ser instalada manualmente. As demais já estão incluídas no ESP32 Core.
 
-1. **Módulo BLE**: Gerencia scan, conexão e recepção de dados (Search_Function,Connect/Disconnect,HR_Notifications,Start_Scan e Connect)
-2. **Módulo WiFi**: Configura access point e servidor web (setup)
-3. **Módulo Web**: Serve interface HTML com dados em tempo real (WebSite)
-4. **Módulo Principal**: Coordena todos os módulos (loop)
+#### Biblioteca Principal (Instalação Manual):
+- **NimBLE-Arduino v2.3.1+**
+  - **Função:** Comunicação Bluetooth Low Energy com Polar H10
+  - **Instalação:** Arduino IDE → Gerenciar Bibliotecas → Pesquisar "NimBLE-Arduino"
+  - **Repositório:** https://github.com/h2zero/NimBLE-Arduino
 
-
-### Uso do LittleFS para arquivos estáticos
-
-A biblioteca Chart.js é servida diretamente do ESP32 usando o sistema de arquivos LittleFS. Isso permite que a interface web funcione **100% offline**.
-
-#### Como enviar arquivos para o SPIFFS
-
-1. **Coloque o arquivo `chart.min.js` na pasta `data/` do seu projeto.**
-2. **Use o plugin de upload para LittleFS:**
-   - Baixe e instale o plugin [Arduino ESP32 LittleFS/ESP32FS Uploader](https://github.com/earlephilhower/arduino-littlefs-upload).
-   - Siga as instruções fornecidas no repositório acima
-   
-
-
-**Principais bibliotecas utilizadas:**
-### Bibliotecas Necessárias
-
-> **IMPORTANTE:** As bibliotecas não estão incluídas neste repositório. Baixe-as diretamente dos repositórios oficiais ou através do Gerenciador de Bibliotecas da Arduino IDE.
-
-#### Bibliotecas Utilizadas (Versões Testadas):
-
-####  Estrutura de Bibliotecas (Referência):
-
-```
- Bibliotecas do Projeto:
-├──  NimBLE-Arduino (v2.3.1)     # <- Instalar manualmente
-├──  WiFi (v3.2.0)               # <- Já incluída no ESP32 Core  
-├──  Network (v3.2.0)            # <- Já incluída no ESP32 Core
-├──  WebServer (v3.2.0)          # <- Já incluída no ESP32 Core
-├──  FS (v3.2.0)                 # <- Já incluída no ESP32 Core
-├──  LittleFS (v3.2.0)           # <- Já incluída no ESP32 Core
-└──  Networking (v3.2.0)         # <- Já incluída no ESP32 Core
-
-
-
-```
-
-1. **NimBLE-Arduino v2.3.1** 
-   - **Função:** Comunicação Bluetooth Low Energy
-   - **Instalação:** Gerenciador de Bibliotecas da Arduino IDE → Pesquisar "NimBLE-Arduino"
-   - **Repositório:** https://github.com/h2zero/NimBLE-Arduino (Deve ser instalada manualmente)
-
-2. **WiFi v3.2.0**
-   - **Função:** Gerenciamento de rede WiFi  
-   - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
-
-3. **Network v3.2.0**
-   - **Função:** Camada de rede base
-   - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
-
-4. **WebServer v3.2.0**
-   - **Função:** Servidor HTTP
-   - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
-
-5. **FS v3.2.0**
-   - **Função:** Sistema de arquivos base (usado pelo LittleFS para servir chart.min.js)
-   - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
-
-6. **LittleFS**
-   - **Função:** Sistema de arquivos flash para armazenar arquivos estáticos (chart.min.js)
-   - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
-
-7. **Networking (v3.2.0)**
-   - **Função:** Camada de rede base que fornece abstrações de protocolo TCP/IP usadas por `WiFi` e `WebServer`
-   - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
-
-#### Como Instalar as Bibliotecas:
-
-1. **Abra a Arduino IDE**
-2. **Vá em:** Sketch → Incluir Biblioteca → Gerenciar Bibliotecas
-3. **Pesquise por:** "NimBLE-Arduino"
-4. **Instale a versão 2.3.1** (ou superior compatível)
-5. **As demais bibliotecas** (WiFi, Network, WebServer, FS e LittleFS) já vêm incluídas com o ESP32 Board Core v3.2.0
+#### Bibliotecas do Sistema (Já Incluídas):
+- **WiFi, Network, WebServer** - Rede e servidor HTTP
+- **FS, LittleFS** - Sistema de arquivos para servir Chart.js offline
+- **Networking** - Abstrações TCP/IP de baixo nível
 
 ---
 
-### Fluxo de Execução
+## Estrutura do Projeto
+
+```
+Esp32-PolarH10/
+├── Readme.md                    # Documentação do projeto
+├── batimento_mockup.html       # Protótipo da interface web
+├── code/
+│   ├── code.ino                # Código principal do ESP32
+│   └── data/                   # Arquivos para LittleFS
+│       └── chart.min.js        # Chart.js offline
+└── images/                     # Imagens da documentação
+    ├── interface_web.png
+    ├── monitor_serial.png
+    ├── polar_h10_teste.jpg
+    └── projeto_montado.jpg
+```
+
+### Arquitetura do Código (`code.ino`)
+
+O software está organizado 4 blocos principais:
+
+1. **BLE** - Gerencia descoberta, conexão e dados do Polar H10
+2. **WiFi** - Configura access point
+3. **Web** - Serve interface HTML com Chart.js
+4. **Loop Principal** - Coordena todos os módulos
+
+---
+
+## Configuração e Build
+
+### 1. Preparação do Ambiente
+
+```bash
+# 1. Instale a Arduino IDE 2.0+
+# 2. Adicione o ESP32 Board Manager:
+#    File → Preferences → Additional Board Manager URLs:
+#    https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+# 3. Instale ESP32 Board Core (v3.2.0+):
+#    Tools → Board → Boards Manager → ESP32
+
+# 4. Instale NimBLE-Arduino:
+#    Tools → Manage Libraries → Search "NimBLE-Arduino"
+```
+
+### 2. Upload dos Arquivos LittleFS
+
+A biblioteca Chart.js deve ser carregada no sistema de arquivos do ESP32:
+
+```bash
+# 1. Coloque chart.min.js na pasta code/data/
+# 2. Instale arduino-littlefs-upload plugin: https://github.com/earlephilhower/arduino-littlefs-upload
+# 3. Envie seguindo as instruções do plugin
+```
+
+### 3. Configuração da Placa
+
+```
+Board: "ESP32C3 Dev Module"
+Upload Speed: "921600"
+CPU Frequency: "160MHz"  
+Flash Mode: "QIO"
+Flash Size: "4MB (3MB APP/1MB SPIFFS)"
+Partition Scheme: "HUGEAPP"
+```
+
+### 4. Compilação e Upload
+
+```bash
+# 1. Abra code/code.ino na Arduino IDE
+# 2. Verifique se todas as bibliotecas estão instaladas
+# 3. Verifique as configurações da placa
+# 4. Upload: Ctrl+U
+# 5. Upload LittleFS: [Ctrl] + [Shift] + [P] then "Upload LittleFS to Pico/ESP8266/ESP32"
+```
+
+---
+
+## Como Usar
+
+### 1. Preparação do Polar H10
+- Coloque a cinta peitoral no peito (preferencialmente umidificada)
+- Certifique-se que não está conectado a outros dispositivos (Ou ative a conexão com 2 dispositivos nos app da Polar)
+
+### 2. Inicialização do ESP32
+- Conecte o ESP32 via USB e faça upload do código
+- Abra o Monitor Serial (115200 baud) para debug
+
+### 3. Conexão e Acesso
+- **Conecte no WiFi:** `ESP32-HeartRate`
+- **Acesse:** http://192.168.4.1 no navegador
+- **Aguarde:** A conexão BLE com Polar H10 (pode levar 1-2 minutos)
+
+### 4. Interface Web
+- **Status de Conexão:** Cores indicam o estado (Amarelo Scanning → Verde Connected)
+- **Batimentos:** Valor atual em BPM
+- **Gráfico:** Histórico dos últimos 15 pontos
+- **Atualização:** Automática a cada batimento detectado
+
+---
+
+## Detalhes Técnicos
+
+### Fluxo de Execução Sistema
 
 ```mermaid
 graph TD
@@ -203,94 +240,9 @@ graph TD
     L --> J
 ```
 
-## Como utilizar o projeto?
+### Protocolo BLE - Conexão com Polar H10
 
-Basicamente, você coloca a cinta do Polar H10 no peito (idealmente umidificada), liga o ESP32, conecta no Wi-Fi que ele cria e pronto! Pode acompanhar seus batimentos em tempo real pelo navegador do celular ou computador.
-
----
-
-## O que você vai precisar
-
-### Hardware
-- **ESP32-C3** (testei com o ESP32C3 Dev Module, mas outros devem funcionar)
-- **Polar H10** (cinta peitoral da Polar)
-- Um cabo USB para programar o ESP32
-- Seu celular ou computador para acessar a interface web
-
-### Software
-- **Arduino IDE** (versão que suporte ESP32 Board Package v2.0.0+)
-- **ESP32 Board Core** da Espressif (selecione `ESP32C3 Dev Module`)
-- **Plugin de upload SPIFFS/LittleFS** ([arduino-littlefs-upload](https://github.com/earlephilhower/arduino-littlefs-upload))
-
-## Como funciona por baixo dos panos
-
-```
-[Polar H10 no peito]--Bluetooth -->  [ESP32-C3]--Wi-Fi  --> [Seu celular/PC]
-                                         |
-                                    Servidor Web
-                                   (dados em tempo real)
-```
-Resumo:
-O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mesmo tempo serve uma página web simples onde você pode ver os batimentos atualizando sozinhos.
-
----
-
-## Como testar
-
-1. **Carregue o código** no ESP32 (seguindo a sessão build) e abre o Monitor Serial (115200 baud) [Opcional]
-2. **Coloque a cinta Polar H10** no peito (umidificada)
-3. **Conecte no Wi-Fi** `HRM-ESP32` com a senha `12345678`
-4. **Abre o navegador** e vá em `http://192.168.4.1/` 
-5. **Funcionando** e veja os batimentos mudando na tela!
-
----
-
-## Detalhes técnicos
-
-- O Polar H10 usa o padrão Bluetooth GATT para frequência cardíaca (serviço `0x180D`)
-- A cinta só consegue conectar com **um dispositivo por vez** (na configuração padrão), então se estiver conectada no celular, desconecte primeiro
-- Se quiser conectar o esp32 a um wifi ao invés de criar um novo, troque `WiFi.softAP(...)` por `WiFi.begin(...)`
-
----
-
-## Ideias Futuras para melhorar o projeto
-
-- **WebSocket** para atualização mais suave (sem refresh na página)
-- **Salvar dados** com timestamp para acompanhar o histórico
-- **Enviar para a nuvem** (Algum Banco de dados) para análise a longo prazo e acessar fora do wi-fi padrão 
-- **Alertas** quando os batimentos ficarem muito altos ou baixos (é possível identificar arritmia com os intervalos RR)
-- **Colocar o Website no LittleFS** Melhor alteraçoes do website no ESP32 (Fácil atualização da interface sem recompilar código)
-- **Interpretação do HRV** O HRV pode ser utilizado para captar stress e outros aspectos físicos
-
----
-
-## Links úteis
-
-- [SDK Dos Sensores da Polar](https://github.com/polarofficial/polar-ble-sdk/tree/master)
-- [NimBLE-Arduino no GitHub](https://github.com/h2zero/NimBLE-Arduino)
-- [Plugin LittleFS Uploader](https://github.com/earlephilhower/arduino-littlefs-upload)
-
-### Aprendizados Principais
-
-- Comunicação Bluetooth Low Energy (BLE)
-- Desenvolvimento de servidores web embarcados (LittleFS e uso offline)  
-- Integração de múltiplos protocolos (BLE + WiFi) em microcontroladores
-- Gerenciamento de recursos em sistemas embarcados
-
-### Desafios Superados
-
-1. **Sincronização BLE**: Gerenciar conexão simultânea BLE + WiFi
-2. **Parsing de dados**: Interpretar corretamente os dados do Polar H10
-3. **Interface web**: Criar uma interface simples mas eficaz
-4. **Placa defeituosa ESP32**: 1 dia de debugging devido a problema de hardware
-
----
-
-## Processo de Conexão BLE - Visão Geral
-
-### Fluxo Completo: ESP32 <-> Polar H10
-
-O estabelecimento da conexão entre o ESP32 e o Polar H10 segue um protocolo BLE com múltiplas etapas:
+O estabelecimento da conexão segue um protocolo BLE estruturado:
 
 ```
                   ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -311,97 +263,108 @@ O estabelecimento da conexão entre o ESP32 e o Polar H10 segue um protocolo BLE
                   │ característica  │    │ notificações    │    │ dados de HR     │
                   │ 2A37 (HR Data)  │    │ automáticas     │    │ automaticamente │
                   └─────────────────┘    └─────────────────┘    └─────────────────┘
-                  ```
-
-### Detalhamento Técnico das Etapas
-
-#### **Fase de Scanning**
-```cpp
-// ESP32 escuta por 30 segundos procurando dispositivos BLE
-pBLEScan->start(30000, false, true);
 ```
-- **Duração:** 30 segundos por ciclo
-- **Método de descoberta:** MAC address específico (`a0:9e:1a:e4:c5:6b`) [Do meu dispositivo]
-- **Fallbacks:** Nome "Polar", serviço HR (180D), manufacturer ID (107)
-
-#### **Estabelecimento da Conexão**
-```cpp
-// Múltiplas tentativas com parâmetros progressivos, para tentar acertar a janela de advertasing do sensor
-pClient->connect(polarH10Device, true, false, false);
-```
-- **Tentativas:** Up to 6 attempts with exponential backoff
-- **Parâmetros de conexão:** Ajustados para otimizar a conexão com Polar H10
-- **MTU Negotiation:** Negocia 232 bytes (vs 23 bytes padrão) para transferência eficiente de dados estendidos
-  - **MTU padrão (23 bytes):** Suficiente para HR básico + poucos RR intervals
-  - **MTU otimizado (232 bytes):** Permite HR + múltiplos RR intervals + dados extras em um único pacote
-  - **Benefício:** Reduz latência e melhora eficiência energética
-
-#### **Descoberta de Serviços**
-```cpp
-// Busca pelo serviço padrão de Heart Rate
-pService = pClient->getService(NimBLEUUID("180D"));
-```
-- **Serviço alvo:** `0x180D` (Heart Rate Service - padrão BLE)
-- **Handle descoberto:** Normalmente handle 14
-
-#### **Descoberta de Características**
-```cpp
-// Encontra a característica de medição de HR
-pRemoteCharacteristic = pService->getCharacteristic(NimBLEUUID("2A37"));
-```
-- **Característica alvo:** `0x2A37` (Heart Rate Measurement)
-
-#### **Habilitação de Notificações**
-```cpp
-// Ativa notificações automáticas de dados
-pRemoteCharacteristic->subscribe(true, notifyCallback);
-```
-- **Descriptor usado:** `0x2902` (Client Characteristic Configuration)
-- **Valor escrito:** `0x0001` (enable notifications)
-- **Callback registrado:** `notifyCallback()` para processar dados
-
-#### **Fluxo de Dados Contínuo**
-```cpp
-// Callback executado automaticamente a cada batimento
-void notifyCallback(uint8_t *pData, size_t length, bool isNotify) {
-    // Parse do formato BLE Heart Rate Service
-    uint8_t flags = pData[0];
-    int hr = (flags & 0x01) ? (pData[1] | (pData[2] << 8)) : pData[1];
-}
-```
-
-### Tratamento de Erros e Reconexão
-
-#### Sistema de Retry Inteligente
-- **Tentativas de conexão:** 6 attempts com delays progressivos (400ms, 600ms, 800ms...)
-- **Reset de stack BLE:** A cada 4 tentativas para limpar estado
-- **Timeout global:** 2 minutos antes de reiniciar o scanning
-- **Monitoramento de conexão:** Reconecta se não receber dados por 45 segundos
-
-### Otimizações Implementadas
 
 #### Parâmetros BLE Otimizados
-- **MTU:** 232 bytes (10x maior que padrão)
-- **Data Length:** 185 bytes (Data Length Extension)
-- **Connection Interval:** 50-100ms (balanceado para HR)
+- **MTU:** 232 bytes (vs 23 padrão) - Permite mais dados por pacote
+- **Connection Interval:** 50-100ms - Balanceado para Heart Rate
+- **Data Length Extension:** 185 bytes - Melhora throughput
+- **Retry System:** 6 tentativas com backoff exponencial
 
-#### Estratégias de Timing da conexão
-- **Delay pré-conexão:** Aumenta progressivamente (400ms + retries*200ms)
-- **Spacing entre tentativas:** 8 segundos para respeitar ciclo de advertising
-- **Stabilization delay:** 500ms após conexão bem-sucedida
-
-### Indicadores de Status na Interface Web
-
+#### Indicadores de Status Web
 | Status | Cor | Significado |
 |--------|-----|-------------|
-| **Scanning...** | 🟡 Amarelo | Procurando por Polar H10 |
-| **Connecting...** | 🟠 Laranja | Tentando estabelecer conexão |
-| **Connected** | 🟢 Verde | Recebendo dados de HR |
-| **Connection Failed** | 🔴 Vermelho | Erro na conexão, tentando novamente |
+| **Scanning...** | Amarelo | Procurando Polar H10 |
+| **Connecting...** | Laranja | Estabelecendo conexão |
+| **Connected** | Verde | Recebendo dados HR |
+| **Connection Failed** | Vermelho | Erro - tentando reconectar |
+
+### Sistema Web Embarcado
+- **Access Point:** `ESP32-HeartRate` (192.168.4.1)
+- **Servidor HTTP:** Baseado em WebServer.h
+- **Arquivos Estáticos:** Servidos via LittleFS (Chart.js offline)
 
 ---
 
-### Troubleshooting de Conexão (sugestões)
-- Umidificar a cinta peitoral para melhor contato
-- Desconectar Polar H10 de outros dispositivos (celular/apps) Ou ativar a conexão simultânea de 2 dispositivos (Aplicativos da Polar)
-- Aguardar - o sistema tem retry automático inteligente Ou Resetar o ESP32 pelo botão físico
+## Solução de Problemas
+
+### Problemas de Conexão BLE
+**Sintomas:** Status sempre em "Scanning" ou "Connection Failed"
+
+**Soluções:**
+1. **Umidificar a cinta** - Melhora contato com a pele
+2. **Desconectar outros dispositivos** - Polar H10 (Ou ative a conexão com 2 dispositivos nos app da Polar)
+3. **Aguardar pacientemente** - Sistema tem retry automático inteligente
+4. **Reset físico** - Botão RESET no ESP32
+
+### Problemas de WiFi
+**Sintomas:** Não consegue conectar no AP do ESP32
+
+**Soluções:**
+1. **Verificar SSID** - Deve aparecer "ESP32-HeartRate"
+2. **Proximidade** - Ficar próximo ao ESP32
+3. **Limpar cache** - Forget network e reconectar
+4. **Tentar outro dispositivo** - Teste com celular/computador diferente
+
+### Problemas na Interface Web
+**Sintomas:** Página não carrega ou gráfico não aparece
+
+**Soluções:**
+1. **Verificar Chart.js** - Deve estar em `data/chart.min.js`
+2. **Upload LittleFS** - Executar "ESP32 LittleFS Data Upload"
+3. **Refresh completo** - Ctrl+F5 no navegador
+4. **Monitor Serial** - Verificar logs de erro
+
+### Debug via Monitor Serial
+```bash
+# Configurações importantes:
+Baud Rate: 115200
+# Mensagens importantes a procurar:
+- "LittleFS mounted successfully"
+- "File found: /chart.min.js"
+- "WiFi AP Started"
+- "BLE Device found: Polar H10"
+- "Connected to Polar H10"
+```
+
+---
+
+## Melhorias Futuras
+
+### Melhorias Técnicas
+- **WebSocket** - Comunicação real-time sem polling HTTP
+- **Persistência de dados** - Salvar histórico com timestamp
+- **Integração na nuvem** - Upload para banco de dados remoto
+- **Interface no LittleFS** - HTML/CSS/JS servidos do ESP32
+
+### Funcionalidades Avançadas  
+- **Alertas inteligentes** - Batimentos anômalos (arritmia através dos intervalos RR)
+- **Análise HRV** - Pode ser utilizado para diversas métricas como stress e diversos aspectos de saúde 
+
+### Otimizações de Performance
+- **Gestão de energia** - Deep sleep quando inativo  
+- **Dual-core** - BLE no Core 0, WiFi no Core 1
+
+---
+
+## Referências
+
+### Links Principais
+- **[Polar BLE SDK](https://github.com/polarofficial/polar-ble-sdk)** - Documentação oficial dos sensores Polar
+- **[NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)** - Biblioteca BLE otimizada para ESP32  
+- **[LittleFS Uploader](https://github.com/earlephilhower/arduino-littlefs-upload)** - Plugin para upload de arquivos
+
+### Aprendizados Principais
+- **Comunicação BLE** - Protocolos GATT, características e notificações
+- **Servidores embarcados** - HTTP server em microcontroladores
+- **Multitasking** - Gerenciar BLE + WiFi simultaneamente  
+- **Sistemas real-time** - Processamento de dados de sensores
+
+### Desafios Superados
+1. **Parsing de dados Polar** - Interpretar formato proprietário do H10
+2. **Interface responsiva** - Design funcional em dispositivos móveis
+3. **Hardware debugging** - Identificar ESP32 defeituoso
+
+### Resultados Alcançados
+- **100% Offline** - Funciona sem internet (Chart.js local)
+- **Baixa latência** - Dados em tempo real via BLE otimizado
