@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="2">
+    <title>ESP32 HR Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(#0a657e, #053f4f);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            gap: 5px;
+        }
+        h2 {
+            color: white;
+            font-size: 3.5em;
+            margin: 5px 0;
+            border-bottom: 4px solid #5d8d9a;
+        }
+        .status {
+            padding: 8px 16px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-size: 1em;
+            text-align: center;
+        }
+        .scanning {
+            background: #ffeb3b;
+        }
+        .connecting {
+            background: #ff9800;
+            color: white;
+        }
+        .connected {
+            background: #4caf50;
+            color: white;
+        }
+        .heart {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.4);
+            }
+        }
+        .chart-container {
+            color: black;
+            background: rgba(255, 255, 255, 0.9);
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto !important;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <h2>ESP32 HR Monitor</h2>
+    <div class="status connected">Connected</div>
+    <div style="font-size:4em;color:white;margin:15px;">
+        <span class="heart">❤</span> 75 BPM
+    </div>
+    <div class="chart-container">
+        <canvas id="bpmChart"></canvas>
+    </div>
+    <script>
+        const ctx = document.getElementById('bpmChart').getContext('2d');
+        const bpmData = [72, 74, 75, 73, 76, 78, 80, 82, 85, 87, 89, 90, 92, 94, 95];
+        const bpmChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['-14s', '-13s', '-12s', '-11s', '-10s', '-9s', '-8s', '-7s', '-6s', '-5s', '-4s', '-3s', '-2s', '-1s', 'Now'],
+                datasets: [{
+                    label: 'Heart Rate (BPM)',
+                    data: bpmData,
+                    borderColor: 'white',
+                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                    pointBackgroundColor: 'red',
+                    pointBorderColor: 'black',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'BPM'
+                        },
+                        min: 40,
+                        max: 200
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

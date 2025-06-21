@@ -24,6 +24,10 @@ static int currentHeartRate = 0;                     // Latest heart rate readin
 static unsigned long lastNotificationTime = 0;       // Timestamp of last heart rate update
 static const char *connectionStatus = "Scanning..."; // Text status shown on web interface
 
+// Heart rate data storage for chart
+static int hrData[15] = {0}; // Array to store last 15 heart rate readings
+static int hrDataIndex = 0;  // Current index in the array
+
 // Web server on port 80
 WebServer server(80);
 
@@ -288,6 +292,10 @@ void notifyCallback(NimBLERemoteCharacteristic *pRemoteCharacteristic,uint8_t *p
         currentHeartRate = hr;
         lastNotificationTime = millis();
 
+        // Add new heart rate data to array
+        hrData[hrDataIndex] = hr;
+        hrDataIndex = (hrDataIndex + 1) % 15; // Circular buffer
+
         Serial.print("Heart Rate: ");
         Serial.println(currentHeartRate);
     }
@@ -506,28 +514,152 @@ bool connectToDevice(){
 
 //----------------------------------------------------------WebSite----------------------------------------------------------
 void handleRoot(){
-    // Create HTML with CSS styling and auto-refresh
+    // Create HTML with advanced styling and Chart.js
     String html = "<!DOCTYPE html><html><head><meta charset='utf-8'><meta http-equiv='refresh' content='2'/>"
-                  "<style>body{font-family:Arial;text-align:center;padding:20px;background:#f0f0f0;}"
-                  "h1{color:#e74c3c;font-size:4em;margin:0;}"
-                  ".status{padding:8px;margin:10px;border-radius:4px;font-weight:bold;}"
-                  ".scanning{background:#ffeb3b;}.connecting{background:#ff9800;color:white;}"
+                  "<title>ESP32 HR Monitor</title>"
+                  "<style>"
+                  "body{font-family:Arial,sans-serif;text-align:center;padding:10px;"
+                  "background:linear-gradient(#0a657e,#053f4f);display:flex;flex-direction:column;"
+                  "justify-content:center;align-items:center;min-height:100vh;margin:0;gap:5px;}"
+                  "h2{color:white;font-size:3.5em;margin:5px 0;border-bottom:4px solid #5d8d9a;}"
+                  ".status{padding:8px 16px;margin:5px 0;border-radius:4px;font-size:1em;text-align:center;}"
+                  ".scanning{background:#ffeb3b;}"
+                  ".connecting{background:#ff9800;color:white;}"
                   ".connected{background:#4caf50;color:white;}"
-                  "</style></head><body><h1> ESP32 HR Monitor</h1>";
+                  ".heart{animation:pulse 1s infinite;}"
+                  "@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.4);}}"
+                  ".chart-container{color:black;background:rgba(255,255,255,0.9);width:100%;"
+                  "max-width:800px;margin:15px 0;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.2);"
+                  "padding:2px;overflow:hidden;}" 
+                  "canvas{width:100% !important;height:auto !important;display:block;margin:0}" 
+                  "</style>"
+                  "<script>"
+                  // Embedded Chart.js (simplified version for basic line chart)
+                  "class SimpleChart{"
+                  "constructor(ctx,config){"
+                  "this.ctx=ctx;this.data=config.data;this.options=config.options||{};"
+                  "this.canvas=ctx.canvas;this.draw();}"
+                  "draw(){"
+                  "const canvas=this.canvas;const ctx=this.ctx;"
+                  "const width=canvas.width=canvas.offsetWidth;"
+                  "const height=canvas.height=Math.min(250, Math.max(width*0.5, 200));" 
+                  "ctx.clearRect(0,0,width,height);"
+                  "const chartPadding=30;const chartWidth=width-2*chartPadding;" 
+                  "const chartHeight=height-2*chartPadding;"
+                  "const data=this.data.datasets[0].data;"
+                  "const labels=this.data.labels;"
+                  // Adaptive scale calculation
+                  "let actualMin=Math.min(...data.filter(v=>v>0));" // Filter out zeros
+                  "let actualMax=Math.max(...data);"
+                  "if(actualMin===Infinity) actualMin=40;" // Default if no valid data
+                  "if(actualMax===0) actualMax=100;" // Default if no valid data
+                  // Add padding and ensure minimum range of 40
+                  "const scalePadding=20;" 
+                  "let min=Math.max(40,Math.floor((actualMin-scalePadding)/10)*10);" // Round down to nearest 10
+                  "let max=Math.ceil((actualMax+scalePadding)/10)*10;" // Round up to nearest 10
+                  "if(max-min<40) max=min+40;" // Ensure minimum range
+                  "const range=max-min||1;"
+                  // Draw grid
+                  "ctx.strokeStyle='#ddd';ctx.lineWidth=1;"
+                  "for(let i=0;i<=10;i++){"
+                  "const y=chartPadding+i*(chartHeight/10);"
+                  "ctx.beginPath();ctx.moveTo(chartPadding,y);ctx.lineTo(width-chartPadding,y);ctx.stroke();}"
+                  // Draw filled area under the line
+                  "ctx.fillStyle='rgba(255,0,0,0.2)';"
+                  "ctx.beginPath();"
+                  "ctx.moveTo(chartPadding,chartPadding+chartHeight);"
+                  "for(let i=0;i<data.length;i++){"
+                  "const x=chartPadding+i*(chartWidth/(data.length-1));"
+                  "const y=chartPadding+chartHeight-((data[i]-min)/range)*chartHeight;"
+                  "ctx.lineTo(x,y);}"
+                  "ctx.lineTo(chartPadding+(data.length-1)*(chartWidth/(data.length-1)),chartPadding+chartHeight);"
+                  "ctx.closePath();ctx.fill();"
+                  // Draw line
+                  "ctx.strokeStyle='red';ctx.lineWidth=3;ctx.beginPath();"
+                  "for(let i=0;i<data.length;i++){"
+                  "const x=chartPadding+i*(chartWidth/(data.length-1));"
+                  "const y=chartPadding+chartHeight-((data[i]-min)/range)*chartHeight;"
+                  "if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}"
+                  "ctx.stroke();"
+                  // Draw points
+                  "ctx.fillStyle='red';"
+                  "for(let i=0;i<data.length;i++){"
+                  "const x=chartPadding+i*(chartWidth/(data.length-1));"
+                  "const y=chartPadding+chartHeight-((data[i]-min)/range)*chartHeight;"
+                  "ctx.beginPath();ctx.arc(x,y,4,0,2*Math.PI);ctx.fill();}"
+                  // Draw labels
+                  "ctx.fillStyle='black';ctx.font='12px Arial';ctx.textAlign='center';"
+                  "for(let i=0;i<labels.length;i+=3){"
+                  "const x=chartPadding+i*(chartWidth/(labels.length-1));"
+                  "ctx.fillText(labels[i],x,height-10);}"
+                  // Draw Y-axis labels
+                  "ctx.textAlign='right';"
+                  "for(let i=0;i<=5;i++){"
+                  "const y=chartPadding+i*(chartHeight/5);"
+                  "const value=Math.round(max-i*(range/5));"
+                  "ctx.fillText(value,chartPadding-10,y+4);}"
+                  "}}"
+                  "window.Chart=SimpleChart;"
+                  "</script>"
+                  "</head><body>"
+                  "<h2>ESP32 HR Monitor</h2>";
 
-    // Add status indicator with appropriate styling based on connection state
+    // Add status indicator
     String statusClass = deviceConnected ? "connected" : (polarH10Device ? "connecting" : "scanning");
     html += "<div class='status " + statusClass + "'>" + String(connectionStatus) + "</div>";
 
     // Add heart rate display
     if (deviceConnected && currentHeartRate > 0){
-        html += "<div style='font-size:3em;margin:20px;'>❤ " + String(currentHeartRate) + " BPM</div>";
+        html += "<div style='font-size:4em;color:white;margin:15px;'>"
+                "<span class='heart'>❤</span> " + String(currentHeartRate) + " BPM</div>";
     }
     else{
-        html += "<div style='font-size:3em;margin:20px;'>-- BPM</div>";
+        html += "<div style='font-size:4em;color:white;margin:15px;'>"
+                "<span class='heart'>❤</span> -- BPM</div>";
     }
 
-    html += "</body></html>";
+    // Add chart container
+    html += "<div class='chart-container'><canvas id='bpmChart'></canvas></div>";
+
+    // Add JavaScript to create chart with actual data
+    html += "<script>"
+            "const ctx=document.getElementById('bpmChart').getContext('2d');"
+            "const bpmData=[";
+    
+    // Add heart rate data from array
+    for(int i = 0; i < 15; i++){
+        if(i > 0) html += ",";
+        html += String(hrData[i]);
+    }
+    
+    html += "];"
+            "const bpmChart=new Chart(ctx,{"
+            "type:'line',"
+            "data:{"
+            "labels:['-14s','-13s','-12s','-11s','-10s','-9s','-8s','-7s','-6s','-5s','-4s','-3s','-2s','-1s','Now'],"
+            "datasets:[{"
+            "label:'Heart Rate (BPM)',"
+            "data:bpmData,"
+            "borderColor:'red',"
+            "backgroundColor:'rgba(255,0,0,0.2)',"
+            "pointBackgroundColor:'red',"
+            "pointBorderColor:'black',"
+            "fill:true,"
+            "tension:0.4,"
+            "pointRadius:5,"
+            "pointHoverRadius:15"
+            "}]},"
+            "options:{"
+            "responsive:true,"
+            "plugins:{legend:{display:true,position:'top'}},"
+            "scales:{"
+            "x:{title:{display:true,text:'Time'}},"
+            // Calculate adaptive range similar to above, based on actual data
+            "y:{title:{display:true,text:'BPM'}}" // Remove fixed min/max
+            "}}"
+            "});"
+            "</script></body></html>";
+
     server.send(200, "text/html", html);
 }
 
