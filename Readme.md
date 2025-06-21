@@ -125,20 +125,23 @@ A biblioteca Chart.js é servida diretamente do ESP32 usando o sistema de arquiv
 **Principais bibliotecas utilizadas:**
 ### Bibliotecas Necessárias
 
-> **⚠️ IMPORTANTE:** As bibliotecas não estão incluídas neste repositório. Baixe-as diretamente dos repositórios oficiais ou através do Gerenciador de Bibliotecas da Arduino IDE.
+> **IMPORTANTE:** As bibliotecas não estão incluídas neste repositório. Baixe-as diretamente dos repositórios oficiais ou através do Gerenciador de Bibliotecas da Arduino IDE.
 
 #### Bibliotecas Utilizadas (Versões Testadas):
 
-#### 📁 Estrutura de Bibliotecas (Referência):
+####  Estrutura de Bibliotecas (Referência):
 
 ```
-📁 Bibliotecas do Projeto:
-├── 📁 NimBLE-Arduino (v2.3.1)     # ← Instalar manualmente
-├── 📁 WiFi (v3.2.0)               # ← Já incluída no ESP32 Core  
-├── 📁 Network (v3.2.0)            # ← Já incluída no ESP32 Core
-├── 📁 WebServer (v3.2.0)          # ← Já incluída no ESP32 Core
-└── 📁 FS (v3.2.0) [Verifique se realmente é usada]                 # ← Já incluída no ESP32 Core
-#include <LittleFS.h>
+ Bibliotecas do Projeto:
+├──  NimBLE-Arduino (v2.3.1)     # <- Instalar manualmente
+├──  WiFi (v3.2.0)               # <- Já incluída no ESP32 Core  
+├──  Network (v3.2.0)            # <- Já incluída no ESP32 Core
+├──  WebServer (v3.2.0)          # <- Já incluída no ESP32 Core
+├──  FS (v3.2.0)                 # <- Já incluída no ESP32 Core
+├──  LittleFS (v3.2.0)           # <- Já incluída no ESP32 Core
+└──  Networking (v3.2.0)         # <- Já incluída no ESP32 Core
+
+
 
 ```
 
@@ -160,7 +163,15 @@ A biblioteca Chart.js é servida diretamente do ESP32 usando o sistema de arquiv
    - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
 
 5. **FS v3.2.0**
-   - **Função:** Sistema de arquivos (para servir páginas web)
+   - **Função:** Sistema de arquivos base (usado pelo LittleFS para servir chart.min.js)
+   - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
+
+6. **LittleFS**
+   - **Função:** Sistema de arquivos flash para armazenar arquivos estáticos (chart.min.js)
+   - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
+
+7. **Networking (v3.2.0)**
+   - **Função:** Camada de rede base que fornece abstrações de protocolo TCP/IP usadas por `WiFi` e `WebServer`
    - **Instalação:** Incluída automaticamente com ESP32 Board Core v3.2.0
 
 #### Como Instalar as Bibliotecas:
@@ -169,7 +180,7 @@ A biblioteca Chart.js é servida diretamente do ESP32 usando o sistema de arquiv
 2. **Vá em:** Sketch → Incluir Biblioteca → Gerenciar Bibliotecas
 3. **Pesquise por:** "NimBLE-Arduino"
 4. **Instale a versão 2.3.1** (ou superior compatível)
-5. **As demais bibliotecas** (WiFi, Network, WebServer, FS) já vêm incluídas com o ESP32 Board Core v3.2.0
+5. **As demais bibliotecas** (WiFi, Network, WebServer, FS e LittleFS) já vêm incluídas com o ESP32 Board Core v3.2.0
 
 ---
 
@@ -211,24 +222,24 @@ Basicamente, você coloca a cinta do Polar H10 no peito (idealmente umidificada)
 - **ESP32 Board Core** da Espressif (selecione `ESP32C3 Dev Module`)
 - **Plugin de upload SPIFFS/LittleFS** ([arduino-littlefs-upload](https://github.com/earlephilhower/arduino-littlefs-upload))
 
-## 🔄 Como funciona por baixo dos panos
+## Como funciona por baixo dos panos
 
 ```
-[Polar H10 no peito] --Bluetooth--> [ESP32-C3] --Wi-Fi--> [Seu celular/PC]
+[Polar H10 no peito]--Bluetooth -->  [ESP32-C3]--Wi-Fi  --> [Seu celular/PC]
                                          |
                                     Servidor Web
                                    (dados em tempo real)
 ```
-
+Resumo:
 O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mesmo tempo serve uma página web simples onde você pode ver os batimentos atualizando sozinhos.
 
 ---
 
 ## Como testar
 
-1. **Carregue o código** no ESP32 e abre o Monitor Serial (115200 baud)
+1. **Carregue o código** no ESP32 (seguindo a sessão build) e abre o Monitor Serial (115200 baud) [Opcional]
 2. **Coloque a cinta Polar H10** no peito (umidificada)
-3. **Conecte no Wi-Fi** `Monitor-Cardiaco` com a senha `12345678`
+3. **Conecte no Wi-Fi** `HRM-ESP32` com a senha `12345678`
 4. **Abre o navegador** e vá em `http://192.168.4.1/` 
 5. **Funcionando** e veja os batimentos mudando na tela!
 
@@ -246,9 +257,9 @@ O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mes
 
 - **WebSocket** para atualização mais suave (sem refresh na página)
 - **Salvar dados** com timestamp para acompanhar o histórico
-- **Enviar para a nuvem** (Algum Banco de dados) para análise a longo prazo
-- **Alertas** quando os batimentos ficarem muito altos ou baixos
-- **Usar SPIFFS/LittleFS** para armazenar arquivos HTML/CSS/JS no ESP32 (Fácil atualização da interface sem recompilar código)
+- **Enviar para a nuvem** (Algum Banco de dados) para análise a longo prazo e acessar fora do wi-fi padrão 
+- **Alertas** quando os batimentos ficarem muito altos ou baixos (é possível identificar arritmia com os intervalos RR)
+- **Colocar o Website no LittleFS** Melhor alteraçoes do website no ESP32 (Fácil atualização da interface sem recompilar código)
 - **Interpretação do HRV** O HRV pode ser utilizado para captar stress e outros aspectos físicos
 
 ---
@@ -261,10 +272,9 @@ O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mes
 
 ### Aprendizados Principais
 
-- Comunicação Bluetooth Low Energy (BLE) com dispositivos biomédicos
-- Desenvolvimento de servidores web embarcados  
+- Comunicação Bluetooth Low Energy (BLE)
+- Desenvolvimento de servidores web embarcados (LittleFS e uso offline)  
 - Integração de múltiplos protocolos (BLE + WiFi) em microcontroladores
-- Interface web responsiva para IoT
 - Gerenciamento de recursos em sistemas embarcados
 
 ### Desafios Superados
@@ -272,36 +282,36 @@ O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mes
 1. **Sincronização BLE**: Gerenciar conexão simultânea BLE + WiFi
 2. **Parsing de dados**: Interpretar corretamente os dados do Polar H10
 3. **Interface web**: Criar uma interface simples mas eficaz
-4. **Placa defeituosa ESP32**: 1 dia de debugging para o problema ser de hardware
+4. **Placa defeituosa ESP32**: 1 dia de debugging devido a problema de hardware
 
 ---
 
 ## Processo de Conexão BLE - Visão Geral
 
-### Fluxo Completo: ESP32 ↔ Polar H10
+### Fluxo Completo: ESP32 <-> Polar H10
 
 O estabelecimento da conexão entre o ESP32 e o Polar H10 segue um protocolo BLE com múltiplas etapas:
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   1. SCANNING   │ => │  2. CONNECTION  │ => │ 3. SERVICE DISC │
-│                 │    │                 │    │                 │
-│ ESP32 procura   │    │ Estabelece      │    │ Encontra o      │
-│ por dispositivos│    │ canal BLE       │    │ serviço 180D    │
-│ BLE próximos    │    │ com Polar H10   │    │ (Heart Rate)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                        │
-         ┌──────────────────────────────────────────────┘
-         │
-         v
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│4. CHARACTERISTIC│ => │ 5. NOTIFICATION │ => │  6. DATA FLOW   │
-│                 │    │                 │    │                 │
-│ Encontra a      │    │ Habilita as     │    │ Polar H10 envia │
-│ característica  │    │ notificações    │    │ dados de HR     │
-│ 2A37 (HR Data)  │    │ automáticas     │    │ automaticamente │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+                  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+                  │   1. SCANNING   │ => │  2. CONNECTION  │ => │ 3. SERVICE DISC │
+                  │                 │    │                 │    │                 │
+                  │ ESP32 procura   │    │ Estabelece      │    │ Encontra o      │
+                  │ por dispositivos│    │ canal BLE       │    │ serviço 180D    │
+                  │ BLE próximos    │    │ com Polar H10   │    │ (Heart Rate)    │
+                  └─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                                          │
+                           ┌──────────────────────────────────────────────┘
+                           │
+                           v
+                  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+                  │4. CHARACTERISTIC│ => │ 5. NOTIFICATION │ => │  6. DATA FLOW   │
+                  │                 │    │                 │    │                 │
+                  │ Encontra a      │    │ Habilita as     │    │ Polar H10 envia │
+                  │ característica  │    │ notificações    │    │ dados de HR     │
+                  │ 2A37 (HR Data)  │    │ automáticas     │    │ automaticamente │
+                  └─────────────────┘    └─────────────────┘    └─────────────────┘
+                  ```
 
 ### Detalhamento Técnico das Etapas
 
@@ -311,7 +321,7 @@ O estabelecimento da conexão entre o ESP32 e o Polar H10 segue um protocolo BLE
 pBLEScan->start(30000, false, true);
 ```
 - **Duração:** 30 segundos por ciclo
-- **Método de descoberta:** MAC address específico (`a0:9e:1a:e4:c5:6b`)
+- **Método de descoberta:** MAC address específico (`a0:9e:1a:e4:c5:6b`) [Do meu dispositivo]
 - **Fallbacks:** Nome "Polar", serviço HR (180D), manufacturer ID (107)
 
 #### **Estabelecimento da Conexão**
@@ -366,15 +376,7 @@ void notifyCallback(uint8_t *pData, size_t length, bool isNotify) {
 - **Tentativas de conexão:** 6 attempts com delays progressivos (400ms, 600ms, 800ms...)
 - **Reset de stack BLE:** A cada 4 tentativas para limpar estado
 - **Timeout global:** 2 minutos antes de reiniciar o scanning
-- **Monitoramento de saúde:** Reconecta se não receber dados por 45 segundos
-
-#### Gerenciamento de Estado
-```cpp
-// Estados principais monitorados
-bool scanActive = true;           // Scanning em andamento
-bool deviceConnected = false;     // Conexão BLE estabelecida  
-String connectionStatus;          // Status para display web
-```
+- **Monitoramento de conexão:** Reconecta se não receber dados por 45 segundos
 
 ### Otimizações Implementadas
 
@@ -383,7 +385,7 @@ String connectionStatus;          // Status para display web
 - **Data Length:** 185 bytes (Data Length Extension)
 - **Connection Interval:** 50-100ms (balanceado para HR)
 
-#### Estratégias de Timing
+#### Estratégias de Timing da conexão
 - **Delay pré-conexão:** Aumenta progressivamente (400ms + retries*200ms)
 - **Spacing entre tentativas:** 8 segundos para respeitar ciclo de advertising
 - **Stabilization delay:** 500ms após conexão bem-sucedida
@@ -399,13 +401,7 @@ String connectionStatus;          // Status para display web
 
 ---
 
-### Troubleshooting de Conexão
-
-#### Problemas Comuns:
-1. **"No HR data received in 45 seconds"** → Verificar contato da cinta no peito
-2. **"Connection failed; status=13"** → Timeout - normal, sistema tentará novamente
-
-#### Soluções:
+### Troubleshooting de Conexão (sugestões)
 - Umidificar a cinta peitoral para melhor contato
 - Desconectar Polar H10 de outros dispositivos (celular/apps) Ou ativar a conexão simultânea de 2 dispositivos (Aplicativos da Polar)
 - Aguardar - o sistema tem retry automático inteligente Ou Resetar o ESP32 pelo botão físico
