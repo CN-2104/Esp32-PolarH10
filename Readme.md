@@ -1,4 +1,4 @@
-# 💓 Monitor Cardíaco ESP32-C3 + Polar H10 com Dashboard Web
+#  Monitor Cardíaco ESP32-C3 + Polar H10 com Dashboard Web
 
 > **Trabalho 2 - Projeto de Software e Hardware com Arduino/ESP32**  
 > **Disciplina:** SSC0180 - Eletrônica para Computação	
