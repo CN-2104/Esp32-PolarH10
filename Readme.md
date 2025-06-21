@@ -86,8 +86,6 @@ O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** v
 
 ---
 
----
-
 ## Pré-requisitos
 
 ### Hardware Necessário
