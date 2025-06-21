@@ -2,6 +2,7 @@
 #include <NimBLEDevice.h> // NimBLE library for BLE communication - faster alternative to standard BLE
 #include <WiFi.h>         // Required for creating WiFi access point
 #include <WebServer.h>    // Enables hosting a web server to display heart rate data
+#include <LittleFS.h>
 
 // WiFi network credentials - creates access point with these details
 const char *ssid = "HRM-ESP32";    // Network name for the ESP32's access point
@@ -533,14 +534,7 @@ void handleRoot(){
                   "padding:2px;overflow:hidden;}" 
                   "canvas{width:100% !important;height:auto !important;display:block;margin:0}" 
                   "</style>"
-                  "<script>";
-
-    // Space to paste Chart.js library code
-    html += R"=====(
-// PASTE CHART.JS LIBRARY HERE
-)=====";
-
-    html += "</script>"
+                  "<script src=\"/chart.min.js\"></script>"
                   "</head><body>"
                   "<h2>ESP32 HR Monitor</h2>";
 
@@ -625,8 +619,38 @@ void setup(){
 
     // Setup web server routes
     server.on("/", handleRoot); // Main HR display page
-    server.begin();
-    Serial.println("HTTP server started");
+    server.begin();    Serial.println("HTTP server started");
+    
+    // Initialize LittleFS
+    if (!LittleFS.begin(true)) {
+        Serial.println("An Error has occurred while mounting LittleFS");
+        return;
+    }
+    Serial.println("LittleFS initialized successfully");
+    
+    // List files in LittleFS for debugging
+    File root = LittleFS.open("/");
+    File file = root.openNextFile();
+    Serial.println("Files in LittleFS:");
+    while(file){
+        Serial.print("FILE: ");
+        Serial.println(file.name());
+        file = root.openNextFile();
+    }
+    
+    // Serve chart.min.js from LittleFS
+    server.on("/chart.min.js", HTTP_GET, []() {
+        Serial.println("Request for chart.min.js received");
+        File file = LittleFS.open("/chart.min.js", "r");
+        if (!file) {
+            Serial.println("Failed to open chart.min.js");
+            server.send(404, "text/plain", "File not found - check LittleFS upload");
+            return;
+        }
+        Serial.println("Serving chart.min.js");
+        server.streamFile(file, "application/javascript");
+        file.close();
+    });
 
     // Start scanning for Polar H10 HR data
     startScan();

@@ -1,4 +1,4 @@
-# 💓 Monitor Cardíaco ESP32-C3 + Polar H10 com Dashboard Web
+# Monitor Cardíaco ESP32-C3 + Polar H10 com Dashboard Web
 
 > **Trabalho 2 - Projeto de Software e Hardware com Arduino/ESP32**  
 > **Disciplina:** SSC0180 - Eletrônica para Computação	
@@ -81,22 +81,42 @@ O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** v
 O projeto está organizado da seguinte forma:
 
 ```
-📁 Esp32-PolarH10/
-├── 📄 code/code.ino                # Código principal do ESP32
-├── 📁 libraries/                   # Bibliotecas necessárias (Não incluídas)
-│   ├── 📁 NimBLE-Arduino v2.3.1/   # Biblioteca do BLE
-│   ├── 📁 WebServer v3.2.0/        # Biblioteca do Servidor web
-│   ├── 📁 Network v3.2./0          # Biblioteca da Camada de rede base
-│   ├── 📁 WiFi v3.2.0/             # Biblioteca do Gerenciamento de rede WiFi
-│   ├── 📁 FS v3.2.0/               # Biblioteca do Sistema de arquivos (para servir páginas web)
+Esp32-PolarH10
+├───Readme.md
+├───batimento_mockup.html
 │
-├── 📄 Readme.md    	            # Este arquivo
-└── 📁 images/                      # Imagens do projeto
+├───code 
+│   │   code.ino (código principal)
+│   │
+│   └───data (arquivos estáticos para LittleFS (`chart.min.js`)
+│           chart.min.js
+│
+├───codelegacy
+│       codelegacy.ino
+│
+└───images (As imagens usadas no README)
+    ├───IMAGENS_NECESSARIAS.txt 
+    ├───interface_web.png
+    ├───monitor_serial.png
+    ├───polar_h10_teste.jpg
+    └───projeto_montado.jpg
+ 
 ```
 
+### Uso do LittleFS para arquivos estáticos
+
+Agora, a biblioteca Chart.js é servida diretamente do ESP32 usando o sistema de arquivos LittleFS. Isso permite que a interface web funcione **100% offline**.
+
+#### Como enviar arquivos para o SPIFFS
+
+1. **Coloque o arquivo `chart.min.js` na pasta `data/` do seu projeto.**
+2. **Use o plugin de upload para LittleFS:**
+   - Baixe e instale o plugin [Arduino ESP32 LittleFS/ESP32FS Uploader](https://github.com/earlephilhower/arduino-littlefs-upload).
+   - Siga as instruções fornecidas no repositório acima
+   
 ### Código Principal (`code/code.ino`)
 
-O software foi desenvolvido em C++ usando a Arduino IDE e está dividido em módulos funcionais:
+O software foi desenvolvido em C++ usando a Arduino IDE e está dividido em módulos principais:
 
 1. **Módulo BLE**: Gerencia scan, conexão e recepção de dados
 2. **Módulo WiFi**: Configura access point e servidor web  
@@ -104,7 +124,7 @@ O software foi desenvolvido em C++ usando a Arduino IDE e está dividido em mód
 4. **Módulo Principal**: Coordena todos os módulos
 
 **Principais bibliotecas utilizadas:**
-### 📚 Bibliotecas Necessárias
+### Bibliotecas Necessárias
 
 > **⚠️ IMPORTANTE:** As bibliotecas não estão incluídas neste repositório. Baixe-as diretamente dos repositórios oficiais ou através do Gerenciador de Bibliotecas da Arduino IDE.
 
@@ -118,7 +138,9 @@ O software foi desenvolvido em C++ usando a Arduino IDE e está dividido em mód
 ├── 📁 WiFi (v3.2.0)               # ← Já incluída no ESP32 Core  
 ├── 📁 Network (v3.2.0)            # ← Já incluída no ESP32 Core
 ├── 📁 WebServer (v3.2.0)          # ← Já incluída no ESP32 Core
-└── 📁 FS (v3.2.0)                 # ← Já incluída no ESP32 Core
+└── 📁 FS (v3.2.0) [Verifique se realmente é usada]                 # ← Já incluída no ESP32 Core
+#include <LittleFS.h>
+
 ```
 
 1. **NimBLE-Arduino v2.3.1** 
@@ -149,7 +171,6 @@ O software foi desenvolvido em C++ usando a Arduino IDE e está dividido em mód
 3. **Pesquise por:** "NimBLE-Arduino"
 4. **Instale a versão 2.3.1** (ou superior compatível)
 5. **As demais bibliotecas** (WiFi, Network, WebServer, FS) já vêm incluídas com o ESP32 Board Core v3.2.0
-
 
 ---
 
@@ -189,7 +210,7 @@ Basicamente, você coloca a cinta do Polar H10 no peito (idealmente umidificada)
 ### Software
 - **Arduino IDE** (versão que suporte ESP32 Board Package v2.0.0+)
 - **ESP32 Board Core** da Espressif (selecione `ESP32C3 Dev Module`)
-
+- **Plugin de upload SPIFFS/LittleFS** ([arduino-littlefs-upload](https://github.com/earlephilhower/arduino-littlefs-upload))
 
 ## 🔄 Como funciona por baixo dos panos
 
@@ -228,7 +249,7 @@ O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mes
 - **Salvar dados** com timestamp para acompanhar o histórico
 - **Enviar para a nuvem** (Algum Banco de dados) para análise a longo prazo
 - **Alertas** quando os batimentos ficarem muito altos ou baixos
-- **Usar SPIFFS** para armazenar arquivos HTML/CSS/JS no ESP32 (Fácil atualização da interface sem recompilar código)
+- **Usar SPIFFS/LittleFS** para armazenar arquivos HTML/CSS/JS no ESP32 (Fácil atualização da interface sem recompilar código)
 - **Interpretação do HRV** O HRV pode ser utilizado para captar stress e outros aspectos físicos
 
 ---
@@ -237,6 +258,7 @@ O ESP32 fica "escutando" os dados do Polar H10 via Bluetooth Low Energy e ao mes
 
 - [SDK Dos Sensores da Polar](https://github.com/polarofficial/polar-ble-sdk/tree/master)
 - [NimBLE-Arduino no GitHub](https://github.com/h2zero/NimBLE-Arduino)
+- [Plugin LittleFS Uploader](https://github.com/earlephilhower/arduino-littlefs-upload)
 
 ### Aprendizados Principais
 
