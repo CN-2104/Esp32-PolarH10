@@ -28,7 +28,7 @@ O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** v
 
 ## Demonstração
 
-**[Assista ao projeto funcionando aqui](https://www.youtube.com/XXXXXXXXX)**
+**[Assista ao projeto funcionando aqui](https://youtu.be/Y3p7Y0jBS4w)**
 
 *O vídeo contém:*
 - O projeto montado e funcionando
