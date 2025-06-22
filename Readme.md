@@ -73,15 +73,15 @@ O objetivo do trabalho foi conectar um **ESP32-C3** com o sensor **Polar H10** v
 *ESP32-C3 conectado via USB sendo utilizado*
 
 ### Interface Web
-![Dashboard Web](images/interface_web.png)
+![Dashboard Web](images/interface_web.jpg)
 *Página web mostrando os batimentos em tempo real*
 
 ### Polar H10 em Uso
-![Polar H10](images/polar_h10_teste.jpg)
+![Polar H10](images/polar_h10_teste.png)
 *Cinta peitoral Polar H10 usada nos testes*
 
 ### Monitor Serial
-![Debug Serial](images/monitor_serial.png)
+![Debug Serial](images/monitor_serial.jpg)
 *Dados sendo recebidos via Bluetooth no monitor serial*
 
 ---
