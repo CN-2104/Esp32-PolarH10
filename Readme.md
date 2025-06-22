@@ -12,8 +12,8 @@
 - [Como Usar](#como-usar)
 - [Detalhes Técnicos](#detalhes-técnicos)
 - [Solução de Problemas](#solução-de-problemas)
-- [Trabalhos Futuros](#trabalhos-futuros)
 - [Referências](#referências)
+- [Extras](#extras)
 
 ## Visão Geral
 
@@ -355,6 +355,8 @@ Baud Rate: 115200
 - **[Polar BLE SDK](https://github.com/polarofficial/polar-ble-sdk)** - Documentação oficial dos sensores Polar
 - **[NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)** - Biblioteca BLE otimizada para ESP32  
 - **[LittleFS Uploader](https://github.com/earlephilhower/arduino-littlefs-upload)** - Plugin para upload de arquivos
+
+## Extras
 
 ### Aprendizados Principais
 - **Comunicação BLE** - Protocolos GATT, características e notificações
