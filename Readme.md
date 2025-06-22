@@ -6,12 +6,14 @@
 ## Sumário
 - [Visão Geral](#visão-geral)
 - [Demonstração](#demonstração)
+- [Imagens do Projeto](#Imagens-do-Projeto)
 - [Pré-requisitos](#pré-requisitos)
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Configuração e Build](#configuração-e-build)
 - [Como Usar](#como-usar)
 - [Detalhes Técnicos](#detalhes-técnicos)
 - [Solução de Problemas](#solução-de-problemas)
+- [Melhorias Futuras](#Melhorias-Futuras)
 - [Referências](#referências)
 - [Extras](#extras)
 
