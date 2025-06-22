@@ -70,8 +70,7 @@ static unsigned long lastNotificationTime = 0;       // Timestamp of last heart 
 static const char *connectionStatus = "Scanning..."; // Text status shown on web interface
 
 // Heart rate data storage for chart
-static int hrData[MAX_HR_HISTORY] = {0}; // Array to store last 15 heart rate readings
-static int hrDataIndex = 0;  // Current index in the array
+static int hrData[MAX_HR_HISTORY] = {0}; // Array to store last 15 heart rate readings (shifting buffer)
 
 // Web server on port 80
 WebServer server(80);
@@ -340,9 +339,13 @@ void notifyCallback(NimBLERemoteCharacteristic *pRemoteCharacteristic,uint8_t *p
         currentHeartRate = hr;
         lastNotificationTime = millis();
 
-        // Add new heart rate data to array
-        hrData[hrDataIndex] = hr;
-        hrDataIndex = (hrDataIndex + 1) % MAX_HR_HISTORY; // Circular buffer
+        // Add new heart rate data using shifting buffer approach
+        // Shift all existing data one position to the left (oldest data is discarded)
+        for (int i = 0; i < MAX_HR_HISTORY - 1; i++) {
+            hrData[i] = hrData[i + 1];
+        }
+        // Add new reading at the end (most recent position)
+        hrData[MAX_HR_HISTORY - 1] = hr;
 
         Serial.print("Heart Rate: ");
         Serial.println(currentHeartRate);
