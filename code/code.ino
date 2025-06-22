@@ -232,7 +232,7 @@ public:
 
         Serial.print("Scan ended. Reason: ");
         Serial.print(reason);
-        Serial.print(", Found ");
+        Serial.print(" (0=timeout, 1=stopped, 2=error), Found ");
         Serial.print(results.getCount());
         Serial.println(" devices");
 
@@ -249,7 +249,9 @@ public:
         Serial.print(scanAttempts);
         Serial.println(" - continuing scan");
 
-        // Scan will automatically restart via third parameter (true) in startScan()
+        // Set scanActive to false so main loop will restart the scan
+        Serial.println("Scan ended - will restart via main loop");
+        scanActive = false;
     }
 };
 
@@ -366,9 +368,14 @@ void startScan(){
     }
 
     // Reset BT stack before scan This helps resolve many connection issues by starting fresh
+    Serial.println("Initializing BLE stack...");
     NimBLEDevice::deinit(true);
     delay(200);
     NimBLEDevice::init("ESP32-HR-Monitor");
+
+    // Set BLE power and configuration
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9); // Maximum transmission power for better range
+    // Alternative power levels: ESP_PWR_LVL_N12, ESP_PWR_LVL_N9, ESP_PWR_LVL_N6, ESP_PWR_LVL_N3, ESP_PWR_LVL_N0, ESP_PWR_LVL_P3, ESP_PWR_LVL_P6, ESP_PWR_LVL_P9
 
     // Explicitly disable security for simpler connection
     // Polar H10 doesn't require encryption for heart rate
@@ -387,8 +394,17 @@ void startScan(){
 
     Serial.println("\n=== Starting BLE scan ===");
     Serial.println("Looking for Polar H10 device...");
+    Serial.print("Target MAC: ");
+    Serial.println(POLAR_H10_MAC);
 
     pBLEScan = NimBLEDevice::getScan();
+    if (pBLEScan == nullptr) {
+        Serial.println("ERROR: Failed to get BLE scan object!");
+        delay(2000);
+        ESP.restart();
+        return;
+    }
+    Serial.println("BLE scan object created successfully");
 
     // Create callback only once for efficiency
     if (scanCallback == nullptr){
@@ -401,6 +417,7 @@ void startScan(){
     pBLEScan->setInterval(80);     // Scan more frequently (in ms)
     pBLEScan->setWindow(60);       // Spend more time scanning in each interval
     pBLEScan->setMaxResults(0);    // Don't store results in memory, use callbacks only
+    pBLEScan->setDuplicateFilter(false); // Allow duplicate advertisements for better detection
 
     // Start continuous scan with parameters:
     // 1. Duration: 30 seconds
@@ -410,12 +427,18 @@ void startScan(){
 
     // Handle scan start failure
     if (!scanResult){
-        Serial.println("Failed to start scan! Restarting ESP32");
-        delay(3000);
+        Serial.println("Failed to start scan! Trying BLE stack reset...");
+        NimBLEDevice::deinit(true);
+        delay(1000);
+        Serial.println("Restarting ESP32 in 2 seconds...");
+        delay(2000);
         ESP.restart(); // Last resort - restart the entire device
     }
 
     Serial.println("Continuous scan started successfully. Searching for device");
+    
+    // Add small delay to let scan actually start
+    delay(100);
 }
 
 //----------------------------------------------------------Connect----------------------------------------------------------
@@ -662,8 +685,6 @@ void setup(){
 
     // Initialize BLE with simplified setup
     NimBLEDevice::init("ESP32-HR-Monitor");    // Improve BLE configuration for better range and stability
-    NimBLEDevice::setPower(ESP_PWR_LVL_P9); // Maximum transmission power for better range
-    // Alternative power levels: ESP_PWR_LVL_N12, ESP_PWR_LVL_N9, ESP_PWR_LVL_N6, ESP_PWR_LVL_N3, ESP_PWR_LVL_N0, ESP_PWR_LVL_P3, ESP_PWR_LVL_P6, ESP_PWR_LVL_P9
 
     NimBLEDevice::setMTU(BLE_MTU_SIZE);              // MTU that Polar H10 supports for larger data packets
 
