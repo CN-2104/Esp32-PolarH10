@@ -347,8 +347,6 @@ Baud Rate: 115200
 
 ### Otimizações de Performance
 - **Gestão de energia** - Deep sleep quando inativo  
-- **Dual-core** - BLE no Core 0, WiFi no Core 1
-
 ---
 
 ## Referências
